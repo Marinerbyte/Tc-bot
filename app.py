@@ -8,284 +8,324 @@ HTML_CODE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remanu Ultimate Controller</title>
+    <title>NEXUS CONTROLLER</title>
     <style>
-        body { background-color: #050505; color: #00ff41; font-family: monospace; padding: 10px; margin: 0; }
+        body { background-color: #000; color: #00ff00; font-family: 'Courier New', monospace; padding: 10px; margin: 0; }
         
         /* LAYOUT */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
-
-        .box { border: 1px solid #333; background: #111; padding: 10px; border-radius: 5px; }
-        h3 { border-bottom: 1px solid #00ff41; padding-bottom: 5px; margin-top: 0; color: white; font-size: 14px; }
+        .container { max-width: 100%; margin: auto; }
+        .box { border: 1px solid #333; background: #080808; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        
+        h2 { text-align: center; border-bottom: 1px solid #00ff00; padding-bottom: 5px; color: white; margin-top: 0; }
+        h3 { font-size: 14px; border-bottom: 1px dashed #444; padding-bottom: 3px; margin: 0 0 5px 0; color: #ccc; }
 
         /* INPUTS */
-        label { color: #ccc; font-size: 11px; font-weight: bold; display: block; margin-top: 8px; }
+        label { font-size: 11px; font-weight: bold; color: #666; display: block; margin-top: 5px; }
         input, textarea, select { 
-            width: 100%; background: #222; color: #fff; border: 1px solid #555; 
-            padding: 8px; margin-top: 3px; box-sizing: border-box; border-radius: 3px;
+            width: 100%; background: #111; color: #fff; border: 1px solid #444; 
+            padding: 8px; margin-top: 2px; box-sizing: border-box; font-family: monospace;
         }
-        textarea { height: 100px; color: yellow; border: 1px solid #777; }
-        #customText { border: 1px solid #00ff00; }
+        textarea { height: 80px; color: yellow; font-size: 11px; border: 1px solid #666; }
 
         /* BUTTONS */
-        button { width: 100%; padding: 12px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; border-radius: 3px; }
-        .btn-start { background: green; color: white; }
-        .btn-stop { background: red; color: white; }
-        .btn-force { background: orange; color: black; margin-top: 5px; }
+        button { width: 100%; padding: 12px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; border-radius: 2px; }
+        .btn-start { background: #006400; color: white; }
+        .btn-stop { background: #8b0000; color: white; }
 
-        /* STATUS & LISTS */
-        .scroll-box { height: 150px; overflow-y: scroll; background: #000; border: 1px solid #333; padding: 5px; font-size: 10px; }
-        .status-row { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 2px; }
-        .st-online { color: #00ff00; }
-        .st-fail { color: #ff0000; text-decoration: line-through; }
-        
+        /* LOGS & STATUS */
+        .scroll-box { height: 150px; overflow-y: scroll; background: #000; border: 1px solid #222; padding: 5px; font-size: 10px; }
+        .log-line { border-bottom: 1px solid #111; padding: 1px; }
+
+        /* BOT STATUS GRID */
+        .bot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; max-height: 100px; overflow-y: auto; }
+        .bot-card { background: #111; padding: 3px; border: 1px solid #333; font-size: 10px; display: flex; justify-content: space-between; }
+        .st-con { color: yellow; }
+        .st-on { color: lime; font-weight: bold; }
+        .st-dead { color: red; text-decoration: line-through; }
+
         /* USER LIST */
-        .user-item { display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #222; padding: 2px; }
-        .user-avatar { width: 20px; height: 20px; border-radius: 50%; }
+        .user-row { display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #222; padding: 2px; }
+        .user-pfp { width: 20px; height: 20px; border-radius: 50%; background: #333; }
     </style>
 </head>
 <body>
 
-<h2 style="text-align:center; margin:5px; color:white;">🤖 Remanu Master Panel</h2>
+<div class="container">
+    <h2>NEXUS CONTROLLER</h2>
 
-<div class="grid">
-    
-    <!-- LEFT PANEL: SETTINGS -->
+    <!-- CONTROLS -->
     <div class="box">
-        <h3>🚀 Configuration</h3>
-        <label>🎯 Target Room:</label>
+        <h3>🚀 Mission Control</h3>
+        <label>🎯 Room Name:</label>
         <input type="text" id="roomName" value="ملتقى🥂العرب">
-        
-        <label>📝 Accounts (user#pass@...)</label>
-        <textarea id="accountString" placeholder="user#pass@user#pass@"></textarea>
-        
+
+        <label>💂 Bots (user#pass@...)</label>
+        <textarea id="accString" placeholder="bot1#pass123@bot2#pass123@"></textarea>
+
         <div style="display:flex; gap:5px;">
             <div style="flex:1">
-                <label>⏱️ Wait (Sec):</label>
-                <input type="number" id="msgDelay" value="2">
+                <label>⏱️ Delay (Sec):</label>
+                <input type="number" id="startDelay" value="2">
             </div>
             <div style="flex:1">
-                <label>🎭 Mode:</label>
+                <label>⚡ Speed (ms):</label>
+                <input type="number" id="spamSpeed" value="2000">
+            </div>
+        </div>
+
+        <div style="display:flex; gap:5px;">
+            <div style="flex:1">
+                <label>⌛ Stop After (s):</label>
+                <input type="number" id="duration" value="60">
+            </div>
+            <div style="flex:1">
+                <label>🎭 Message Type:</label>
                 <select id="msgMode">
-                    <option value="custom">✍️ Custom Text</option>
-                    <option value="ascii">🎲 Random ASCII</option>
-                    <option value="ghost">👻 Ghost (Silent)</option>
+                    <option value="custom">✍️ Custom</option>
+                    <option value="ascii">🧸 ASCII</option>
                 </select>
             </div>
         </div>
 
-        <label>💬 Message Content:</label>
-        <input type="text" id="customText" placeholder="Type hello here...">
+        <label>💬 Message Text:</label>
+        <input type="text" id="msgText" placeholder="Hello Chat!">
 
-        <button class="btn-start" onclick="startBots()">🚀 LAUNCH & AUTO-MSG</button>
-        <button class="btn-force" onclick="forceSend()">🔊 SEND MESSAGE NOW (MANUAL)</button>
-        <button class="btn-stop" onclick="stopBots()">🛑 STOP ALL</button>
+        <button class="btn-start" onclick="launchAttack()">🚀 START MISSION</button>
+        <button class="btn-stop" onclick="abortMission()">🛑 ABORT MISSION</button>
     </div>
 
-    <!-- RIGHT PANEL: MONITOR -->
+    <!-- MONITORING -->
     <div class="box">
-        <h3>📊 Bot Status</h3>
-        <div id="botStatusList" class="scroll-box" style="height:120px;"></div>
+        <h3>📡 Status Monitor</h3>
+        <div id="botGrid" class="bot-grid"></div>
         
-        <h3 style="margin-top:10px;">👥 Room Users (<span id="userCount">0</span>)</h3>
-        <div id="roomUserList" class="scroll-box"></div>
+        <h3 style="margin-top:10px;">👥 Room Users (<span id="uCount">0</span>)</h3>
+        <div id="userList" class="scroll-box"></div>
     </div>
 
-</div>
-
-<!-- LOGS -->
-<div class="box" style="margin-top:10px;">
-    <h3>📜 Logs</h3>
-    <div id="logs" class="scroll-box" style="height:100px;"></div>
+    <!-- LOGS -->
+    <div class="box">
+        <h3>📜 Event Logs</h3>
+        <div id="logs" class="scroll-box"></div>
+    </div>
 </div>
 
 <script>
-    let activeBots = []; // Stores Bot Objects
+    let activeBots = [];
     let isRunning = false;
+    let globalInterval = null;
+    let usersMap = new Map();
 
-    // --- UTILS ---
+    // --- LOGGING ---
     function log(msg) {
         let box = document.getElementById("logs");
         let div = document.createElement("div");
+        div.className = "log-line";
         div.innerText = "> " + msg;
         box.prepend(div);
     }
 
+    // --- UI UPDATES ---
+    function updateBotUI(user, status) {
+        let grid = document.getElementById("botGrid");
+        let card = document.getElementById("b-" + user);
+        
+        let cls = "st-con";
+        if(status === "ONLINE") cls = "st-on";
+        if(status === "FAILED") cls = "st-dead";
+
+        let html = `<span>${user}</span> <span class="${cls}">${status}</span>`;
+
+        if(card) {
+            card.innerHTML = html;
+        } else {
+            let div = document.createElement("div");
+            div.id = "b-" + user;
+            div.className = "bot-card";
+            div.innerHTML = html;
+            grid.appendChild(div);
+        }
+    }
+
+    function renderUsers() {
+        let box = document.getElementById("userList");
+        box.innerHTML = "";
+        document.getElementById("uCount").innerText = usersMap.size;
+
+        usersMap.forEach((u, id) => {
+            let name = u.name || u.username || "Unknown";
+            let icon = u.icon || u.avatar_url || "https://ui-avatars.com/api/?name="+name;
+            if(!icon.startsWith("http")) icon = "https://chatp.net" + icon;
+            
+            let row = document.createElement("div");
+            row.className = "user-row";
+            row.innerHTML = `<img src="${icon}" class="user-pfp"> <span>${name}</span>`;
+            box.appendChild(row);
+        });
+    }
+
     function generateId(len=16) {
-        let c = "abcdef0123456789", s = "";
+        let c="abcdef0123456789", s="";
         for(let i=0; i<len; i++) s += c.charAt(Math.floor(Math.random()*c.length));
         return s;
     }
 
-    function updateBotStatus(user, status) {
-        let box = document.getElementById("botStatusList");
-        let existing = document.getElementById("st-" + user);
-        let colorClass = status === "ONLINE" ? "st-online" : (status === "FAILED" ? "st-fail" : "st-wait");
-        let html = `<span class="${colorClass}">${user}</span> <span>[${status}]</span>`;
+    // --- ASCII LIBRARY ---
+    const ASCII = ["(｡♥‿♥｡)", "ʕ•ᴥ•ʔ", "✨🌟✨", "🔥", "❤️", "(ง'̀-'́)ง", "🚀", "⚡", "UwU", "OwO"];
 
-        if (existing) existing.innerHTML = html;
-        else {
-            let div = document.createElement("div");
-            div.id = "st-" + user;
-            div.className = "status-row";
-            div.innerHTML = html;
-            box.appendChild(div);
-        }
-    }
-
-    function removeFailedID(badUser) {
-        let area = document.getElementById("accountString");
-        let regex = new RegExp(badUser + "#[^@]+@?", "g");
-        area.value = area.value.replace(regex, "");
-        log(`🗑️ Deleted Bad ID: ${badUser}`);
-    }
-
-    function updateRoomList(users) {
-        let box = document.getElementById("roomUserList");
-        box.innerHTML = "";
-        document.getElementById("userCount").innerText = users.length;
-        users.forEach(u => {
-            let name = u.username || "Unknown";
-            let icon = u.avatar_url || u.icon || "https://ui-avatars.com/api/?name="+name;
-            if(!icon.startsWith("http")) icon = "https://chatp.net" + icon;
-            
-            let div = document.createElement("div");
-            div.className = "user-item";
-            div.innerHTML = `<img src="${icon}" class="user-avatar"><span>${name}</span>`;
-            box.appendChild(div);
-        });
-    }
-
-    // --- BOT LOGIC ---
-    const ASCII_LIB = ["(｡♥‿♥｡)", "ʕ•ᴥ•ʔ", "✨🌟✨", "🔥", "❤️", "(ง'̀-'́)ง"];
-
+    // --- BOT CLASS ---
     class Bot {
         constructor(user, pass, room) {
             this.user = user;
             this.pass = pass;
             this.room = room;
             this.ws = null;
-            this.id = generateId();
-            this.isJoined = false;
+            this.joined = false;
         }
 
         connect() {
-            if (!isRunning) return;
-            updateBotStatus(this.user, "CONNECTING...");
+            if(!isRunning) return;
+            updateBotUI(this.user, "Wait...");
+            
             this.ws = new WebSocket("wss://chatp.net:5333/server");
 
             this.ws.onopen = () => {
-                this.send({ handler: "login", id: this.id, username: this.user, password: this.pass });
+                this.send({ handler: "login", id: generateId(), username: this.user, password: this.pass });
             };
 
             this.ws.onmessage = (e) => {
                 let data = JSON.parse(e.data);
 
-                if (data.handler === "login_event" && data.type === "success") {
+                // DEBUG LOG (To see what server sends)
+                if(data.handler === "roster") console.log("ROSTER RECEIVED", data);
+
+                // 1. LOGIN SUCCESS
+                if(data.handler === "login_event" && data.type === "success") {
                     this.send({ handler: "room_join", id: generateId(), name: this.room });
                 }
-                else if (data.handler === "login_event" && data.type === "error") {
-                    updateBotStatus(this.user, "FAILED");
-                    removeFailedID(this.user);
+                
+                // 1.1 LOGIN FAIL
+                else if(data.handler === "login_event" && data.type === "error") {
+                    updateBotUI(this.user, "FAILED");
                     this.ws.close();
                 }
-                else if (data.handler === "room_event" && data.type === "room_joined") {
-                    this.isJoined = true;
-                    updateBotStatus(this.user, "ONLINE");
-                    
-                    // --- AUTO MESSAGE LOGIC ---
-                    let mode = document.getElementById("msgMode").value;
-                    let delay = document.getElementById("msgDelay").value * 1000;
-                    let txt = document.getElementById("customText").value || "Hello";
 
-                    if (mode !== "ghost") {
-                        let finalMsg = (mode === "ascii") ? ASCII_LIB[Math.floor(Math.random()*ASCII_LIB.length)] : txt;
-                        
-                        log(`[${this.user}] Waiting ${delay/1000}s to send...`);
-                        setTimeout(() => {
-                            if(isRunning && this.ws.readyState === WebSocket.OPEN) {
-                                this.sendMessage(finalMsg);
-                            }
-                        }, delay);
+                // 2. ROOM JOINED
+                else if(data.handler === "room_event" && data.type === "room_joined") {
+                    this.joined = true;
+                    updateBotUI(this.user, "ONLINE");
+                }
+
+                // 3. USER LIST HANDLING (ROSTER)
+                else if(data.handler === "roster") {
+                    if(data.users) {
+                        data.users.forEach(u => usersMap.set(u.id || u.user_id, u));
+                        renderUsers();
                     }
                 }
-                else if (data.handler === "roster") {
-                    if (data.users) updateRoomList(data.users);
+                // LIVE JOIN/LEAVE
+                else if(data.handler === "room_event" && data.type === "join") {
+                    usersMap.set(data.id || data.user_id, data);
+                    renderUsers();
+                }
+                else if(data.handler === "room_event" && data.type === "leave") {
+                    usersMap.delete(data.id || data.user_id);
+                    renderUsers();
                 }
             };
 
             this.ws.onclose = () => {
-                this.isJoined = false;
-                updateBotStatus(this.user, "DISCONNECTED");
+                this.joined = false;
+                updateBotUI(this.user, "OFF");
             };
         }
 
         send(json) {
-            if (this.ws.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify(json));
+            if(this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.ws.send(JSON.stringify(json));
+            }
         }
 
         sendMessage(text) {
-            this.send({ 
-                handler: "room_message", 
-                id: generateId(), 
-                room: this.room, 
-                type: "text", 
-                body: text 
-            });
-            log(`[${this.user}] Sent: ${text}`);
+            if(this.joined) {
+                this.send({ 
+                    handler: "room_message", 
+                    id: generateId(), 
+                    room: this.room, 
+                    type: "text", 
+                    body: text 
+                });
+            }
         }
     }
 
-    // --- CONTROLS ---
-
-    function startBots() {
-        if (isRunning) return;
-        let room = document.getElementById("roomName").value;
-        let raw = document.getElementById("accountString").value;
+    // --- SYSTEM LOGIC ---
+    function launchAttack() {
+        if(isRunning) return;
         
-        if (!raw.includes("#")) { alert("Enter accounts!"); return; }
+        let raw = document.getElementById("accString").value;
+        let room = document.getElementById("roomName").value;
+        if(!raw.includes("#")) { alert("Enter Bots!"); return; }
 
         isRunning = true;
-        activeBots = [];
-        document.getElementById("botStatusList").innerHTML = "";
+        usersMap.clear();
+        renderUsers();
+        document.getElementById("botGrid").innerHTML = "";
 
+        // Parse Bots
         let list = raw.split("@").filter(s => s.includes("#"));
-        log(`[*] Launching ${list.length} bots...`);
-
-        list.forEach((acc, i) => {
-            let [u, p] = acc.split("#");
-            setTimeout(() => {
-                if(!isRunning) return;
-                let bot = new Bot(u.trim(), p.trim(), room);
-                activeBots.push(bot);
-                bot.connect();
-            }, i * 800);
+        activeBots = list.map(s => {
+            let [u, p] = s.split("#");
+            return new Bot(u.trim(), p.trim(), room);
         });
-    }
 
-    function stopBots() {
-        isRunning = false;
-        log("🛑 Stopping...");
-        activeBots.forEach(b => { if(b.ws) b.ws.close(); });
-        activeBots = [];
-    }
+        log(`[*] Initiating ${activeBots.length} Bots...`);
 
-    function forceSend() {
-        let txt = document.getElementById("customText").value;
+        // Connect Staggered
+        activeBots.forEach((bot, i) => {
+            setTimeout(() => { if(isRunning) bot.connect(); }, i * 500);
+        });
+
+        // --- GLOBAL SPAM LOOPER (THE FIX) ---
+        // Instead of relying on individual bot timers, we run ONE main loop
+        let startDelay = parseInt(document.getElementById("startDelay").value) * 1000;
+        let speed = parseInt(document.getElementById("spamSpeed").value);
         let mode = document.getElementById("msgMode").value;
-        
-        if (!txt && mode === "custom") { alert("Enter a message first!"); return; }
-        
-        log(`🔊 FORCING MESSAGE to ${activeBots.length} bots...`);
-        
-        activeBots.forEach(bot => {
-            if (bot.isJoined) {
-                let msg = (mode === "ascii") ? ASCII_LIB[Math.floor(Math.random()*ASCII_LIB.length)] : txt;
-                bot.sendMessage(msg);
-            }
-        });
+        let txt = document.getElementById("msgText").value;
+
+        // Start Spamming after delay
+        setTimeout(() => {
+            if(!isRunning) return;
+            log("🔥 ATTACK STARTED (Global Loop Active)");
+            
+            globalInterval = setInterval(() => {
+                if(!isRunning) return;
+                
+                // Pick a message
+                let msg = (mode === "ascii") ? ASCII[Math.floor(Math.random()*ASCII.length)] : txt;
+                if(!msg) msg = ".";
+
+                // Force ALL joined bots to send
+                activeBots.forEach(bot => {
+                    if(bot.joined) bot.sendMessage(msg);
+                });
+
+            }, speed);
+
+        }, startDelay);
+
+        // Auto Stop
+        let duration = parseInt(document.getElementById("duration").value) * 1000;
+        setTimeout(() => abortMission, duration + startDelay);
     }
+
+    function abortMission() {
+        isRunning = false;
+        clearInterval(globalInterval);
+        activeBots.forEach(b => { if(b.ws) b.ws.close(); });
+        log("🛑 MISSION ABORTED.");
+    }
+
 </script>
 
 </body>
