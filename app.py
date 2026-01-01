@@ -8,322 +8,180 @@ HTML_CODE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS COMMANDER</title>
+    <title>NEXUS DEBUGGER</title>
     <style>
-        /* HACKER THEME */
-        body { background-color: #050505; color: #00ff00; font-family: 'Consolas', monospace; margin: 0; padding: 10px; }
+        body { background: #000; color: #0f0; font-family: monospace; padding: 10px; }
+        .box { border: 1px solid #444; padding: 10px; margin-bottom: 10px; background: #111; }
         
-        .container { max-width: 100%; margin: auto; }
-        .panel { border: 1px solid #333; background: #0a0a0a; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        input, textarea { width: 100%; background: #222; color: #fff; border: 1px solid #555; padding: 5px; box-sizing: border-box; }
+        textarea { height: 60px; }
         
-        h2 { text-align: center; border-bottom: 2px solid #00ff00; padding-bottom: 5px; color: white; margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
-        h3 { border-bottom: 1px dashed #444; padding-bottom: 3px; color: #ccc; font-size: 14px; margin-top: 0; }
+        button { width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; font-weight: bold; border: none; }
+        .btn-con { background: blue; color: white; }
+        .btn-a { background: green; color: white; }
+        .btn-b { background: orange; color: black; }
+        .btn-c { background: purple; color: white; }
+        .btn-kill { background: red; color: white; }
 
-        /* CONTROLS */
-        label { color: #888; font-size: 10px; font-weight: bold; display: block; margin-top: 8px; }
-        input, textarea, select { 
-            width: 100%; background: #111; color: #fff; border: 1px solid #444; 
-            padding: 8px; margin-top: 2px; box-sizing: border-box; font-family: monospace; font-size: 11px;
+        #debug-log { 
+            height: 300px; overflow-y: scroll; border: 1px solid #666; 
+            padding: 5px; font-size: 10px; background: #000; white-space: pre-wrap;
         }
-        textarea { height: 80px; color: yellow; border: 1px solid #666; }
-
-        /* BUTTONS */
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; }
-        button { padding: 12px; font-weight: bold; cursor: pointer; border: none; border-radius: 2px; font-size: 11px; color: white; }
-        
-        .btn-connect { background: #00008b; width: 100%; margin-top: 10px; } /* Blue */
-        .btn-attack { background: #006400; } /* Green */
-        .btn-stop { background: #8b0000; } /* Red */
-
-        /* MONITORING */
-        .scroll-box { height: 150px; overflow-y: scroll; background: #000; border: 1px solid #222; padding: 5px; font-size: 10px; }
-        
-        /* USER LIST */
-        .user-row { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #222; padding: 3px; }
-        .user-pic { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #333; }
-        .user-name { color: #ddd; }
-        .bot-tag { color: lime; font-size: 8px; border: 1px solid lime; padding: 0 2px; border-radius: 2px; }
-
-        /* LOGS */
-        .log-line { border-bottom: 1px solid #111; padding: 1px; }
-        .log-in { color: yellow; }
-        .log-out { color: cyan; }
-        .log-sys { color: #888; }
+        .tx { color: cyan; } /* Sent */
+        .rx { color: yellow; } /* Received */
+        .err { color: red; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>⚔️ NEXUS COMMANDER ⚔️</h2>
+<h2 style="text-align:center; margin:0;">🛠️ DEBUG MODE</h2>
+<p style="text-align:center; font-size:10px; color:#aaa;">Check the logs below to see why messages fail.</p>
 
-    <!-- STEP 1: CONNECTION -->
-    <div class="panel">
-        <h3>1. CONNECTION</h3>
-        <label>🎯 Room Name:</label>
-        <input type="text" id="roomName" value="ملتقى🥂العرب">
-
-        <label>💂 Bots (user#pass@...)</label>
-        <textarea id="accString" placeholder="bot1#pass123@bot2#pass123@"></textarea>
-
-        <button class="btn-connect" onclick="connectArmy()">🔌 CONNECT ARMY (LOGIN ONLY)</button>
-    </div>
-
-    <!-- STEP 2: ATTACK -->
-    <div class="panel">
-        <h3>2. ACTION</h3>
-        <div style="display:flex; gap:5px;">
-            <div style="flex:1">
-                <label>⚡ Speed (ms):</label>
-                <input type="number" id="spamSpeed" value="2000">
-            </div>
-            <div style="flex:1">
-                <label>🎭 Mode:</label>
-                <select id="msgMode">
-                    <option value="custom">Custom</option>
-                    <option value="ascii">ASCII</option>
-                </select>
-            </div>
-        </div>
-
-        <label>💬 Message:</label>
-        <input type="text" id="customMsg" placeholder="Hello Chat!">
-
-        <div class="btn-grid">
-            <button class="btn-attack" onclick="startAttack()">🔥 START SPAM</button>
-            <button class="btn-stop" onclick="stopAttack()">⏸️ PAUSE SPAM</button>
-        </div>
-        
-        <button class="btn-stop" style="width:100%; margin-top:5px; background: #444;" onclick="disconnectAll()">❌ DISCONNECT ALL</button>
-    </div>
-
-    <!-- MONITOR -->
-    <div class="panel">
-        <h3>👥 Room Users (<span id="uCount">0</span>)</h3>
-        <div id="userList" class="scroll-box" style="height:120px;"></div>
-    </div>
-
-    <!-- LOGS -->
-    <div class="panel">
-        <h3>📜 Live Logs</h3>
-        <div id="logs" class="scroll-box"></div>
-    </div>
+<div class="box">
+    <label>Room:</label>
+    <input type="text" id="roomName" value="ملتقى🥂العرب">
+    
+    <label>Bot (user#pass):</label>
+    <input type="text" id="botCreds" placeholder="id#pass">
+    
+    <button class="btn-con" onclick="connectBot()">1. CONNECT SINGLE BOT</button>
+    <button class="btn-kill" onclick="killBot()">❌ DISCONNECT</button>
 </div>
 
-<script>
-    let bots = [];
-    let isConnected = false;
-    let isSpamming = false;
-    let spamInterval = null;
-    let usersMap = new Map();
-    let myBotNames = [];
+<div class="box">
+    <label>Message Test:</label>
+    <input type="text" id="msgText" value="Test Message">
+    
+    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px;">
+        <button class="btn-a" onclick="sendTypeA()">Method A</button>
+        <button class="btn-b" onclick="sendTypeB()">Method B</button>
+        <button class="btn-c" onclick="sendTypeC()">Method C</button>
+    </div>
+    <small style="color:#aaa;">Try all 3 buttons one by one.</small>
+</div>
 
-    // --- UTILS ---
-    function log(msg, type="log-sys") {
-        let box = document.getElementById("logs");
+<h3>📡 SERVER LOGS (RAW):</h3>
+<div id="debug-log"></div>
+
+<script>
+    let ws = null;
+    let isConnected = false;
+    let pingInterval = null;
+
+    function log(text, type="rx") {
+        let box = document.getElementById("debug-log");
         let d = document.createElement("div");
-        d.className = "log-line " + type;
-        d.innerText = "> " + msg;
+        d.className = type;
+        d.innerText = (type === "tx" ? "📤 " : "📥 ") + text;
         box.prepend(d);
     }
 
-    // ID Generator (20 chars like tanvar.py)
     function genId(len=20) {
         let c="abcdef0123456789", s="";
         for(let i=0; i<len; i++) s += c.charAt(Math.floor(Math.random()*c.length));
         return s;
     }
 
-    // --- USER LIST UI ---
-    function renderUsers() {
-        let box = document.getElementById("userList");
-        box.innerHTML = "";
-        document.getElementById("uCount").innerText = usersMap.size;
-
-        usersMap.forEach((u) => {
-            let name = u.name || u.username || "Unknown";
-            let isMyBot = myBotNames.includes(name);
-            
-            // Avatar Fix
-            let icon = u.avatar_url || u.icon || "https://ui-avatars.com/api/?name="+name;
-            if(icon && !icon.startsWith("http")) icon = "https://chatp.net" + icon;
-
-            let row = document.createElement("div");
-            row.className = "user-row";
-            
-            let tag = isMyBot ? '<span class="bot-tag">BOT</span>' : '';
-            
-            row.innerHTML = `
-                <img src="${icon}" class="user-pic"> 
-                <span class="user-name" style="color:${isMyBot ? 'lime':'#ccc'}">${name} ${tag}</span>
-            `;
-            box.appendChild(row);
-        });
-    }
-
-    // --- BOT CLASS ---
-    const ASCII = ["(｡♥‿♥｡)", "ʕ•ᴥ•ʔ", "✨", "🔥", "❤️", "🚀", "⚡"];
-
-    class Bot {
-        constructor(user, pass, room) {
-            this.user = user;
-            this.pass = pass;
-            this.room = room;
-            this.ws = null;
-            this.joined = false;
-        }
-
-        connect() {
-            if(this.ws) return; // Already connected
-            
-            this.ws = new WebSocket("wss://chatp.net:5333/server");
-
-            this.ws.onopen = () => {
-                log(`${this.user}: Socket Open. Logging in...`);
-                // Login
-                this.send({ handler: "login", id: genId(), username: this.user, password: this.pass });
-            };
-
-            this.ws.onmessage = (e) => {
-                let data = JSON.parse(e.data);
-
-                // 1. LOGIN SUCCESS -> JOIN ROOM
-                if(data.handler === "login_event" && data.type === "success") {
-                    log(`${this.user}: Login OK. Joining...`, "log-in");
-                    this.send({ handler: "room_join", id: genId(), name: this.room });
-                }
-                
-                // 1.1 LOGIN FAIL
-                else if(data.handler === "login_event" && data.type === "error") {
-                    log(`${this.user}: Login FAILED!`, "log-out");
-                    this.ws.close();
-                }
-
-                // 2. JOINED ROOM (READY)
-                else if(data.handler === "room_event" && data.type === "room_joined") {
-                    this.joined = true;
-                    log(`${this.user}: Joined Room! Waiting for command.`, "log-in");
-                }
-
-                // 3. CAPTURE USERS (ROSTER)
-                else if(data.handler === "roster") {
-                    if(data.users) {
-                        data.users.forEach(u => usersMap.set(u.id || u.user_id, u));
-                        renderUsers();
-                    }
-                }
-                // LIVE JOIN
-                else if(data.handler === "room_event" && data.type === "join") {
-                    usersMap.set(data.id || data.user_id, data);
-                    renderUsers();
-                }
-                // LIVE LEAVE
-                else if(data.handler === "room_event" && data.type === "leave") {
-                    usersMap.delete(data.id || data.user_id);
-                    renderUsers();
-                }
-            };
-
-            this.ws.onclose = () => {
-                this.joined = false;
-                this.ws = null;
-                log(`${this.user}: Disconnected`, "log-out");
-            };
-        }
-
-        send(json) {
-            if(this.ws && this.ws.readyState === WebSocket.OPEN) {
-                this.ws.send(JSON.stringify(json));
-            }
-        }
-
-        sendMessage(txt) {
-            if(!this.joined) return;
-            
-            // --- STRICT PAYLOAD (Matching tanvar.py exactly) ---
-            this.send({
-                handler: "room_message",
-                id: genId(),       // 20 chars
-                room: this.room,
-                type: "text",
-                body: txt,
-                url: "",
-                length: ""         // Empty String
-            });
-        }
+    function connectBot() {
+        if(ws) { alert("Already connected!"); return; }
         
-        disconnect() {
-            if(this.ws) this.ws.close();
-        }
-    }
-
-    // --- CONTROLLER FUNCTIONS ---
-
-    function connectArmy() {
-        if(isConnected) { alert("Already Connected!"); return; }
-        
+        let creds = document.getElementById("botCreds").value;
+        if(!creds.includes("#")) { alert("Enter user#pass"); return; }
+        let [u, p] = creds.split("#");
         let room = document.getElementById("roomName").value;
-        let raw = document.getElementById("accString").value;
-        if(!raw.includes("#")) { alert("No Bots Found!"); return; }
 
-        usersMap.clear();
-        renderUsers();
-        document.getElementById("logs").innerHTML = "";
-        myBotNames = [];
-        bots = [];
+        ws = new WebSocket("wss://chatp.net:5333/server");
 
-        let list = raw.split("@").filter(s => s.includes("#"));
+        ws.onopen = () => {
+            log("Connected to Socket. Sending Login...", "tx");
+            let loginData = { handler: "login", id: genId(), username: u, password: p };
+            ws.send(JSON.stringify(loginData));
+            
+            // Keep Alive Ping (Every 30s)
+            pingInterval = setInterval(() => {
+                if(ws.readyState === WebSocket.OPEN) ws.send(""); // Empty packet for ping
+            }, 30000);
+        };
+
+        ws.onmessage = (e) => {
+            log(e.data, "rx"); // PRINT RAW SERVER RESPONSE
+            
+            let data = JSON.parse(e.data);
+            
+            // Auto Join on Login Success
+            if(data.handler === "login_event" && data.type === "success") {
+                log("Login Success! Joining Room...", "tx");
+                ws.send(JSON.stringify({ handler: "room_join", id: genId(), name: room }));
+            }
+        };
+
+        ws.onclose = () => {
+            log("Socket Closed / Disconnected", "err");
+            ws = null;
+            clearInterval(pingInterval);
+        };
         
-        list.forEach((acc, i) => {
-            let [u, p] = acc.split("#");
-            let user = u.trim();
-            myBotNames.push(user);
-            
-            let bot = new Bot(user, p.trim(), room);
-            bots.push(bot);
-            
-            // Stagger connections (0.5s gap)
-            setTimeout(() => bot.connect(), i * 500);
-        });
-
-        isConnected = true;
-        log(`[*] Connecting ${list.length} bots...`);
+        ws.onerror = (e) => log("Socket Error!", "err");
     }
 
-    function startAttack() {
-        if(!isConnected) { alert("Connect Army First!"); return; }
-        if(isSpamming) return;
-
-        isSpamming = true;
-        let speed = parseInt(document.getElementById("spamSpeed").value);
-        log("🔥 ATTACK STARTED!", "log-in");
-
-        spamInterval = setInterval(() => {
-            if(!isSpamming) return;
-            
-            let mode = document.getElementById("msgMode").value;
-            let txt = document.getElementById("customMsg").value || "Hello";
-
-            bots.forEach(b => {
-                if(b.joined) {
-                    let msg = (mode === "ascii") ? ASCII[Math.floor(Math.random()*ASCII.length)] : txt;
-                    b.sendMessage(msg);
-                }
-            });
-        }, speed);
+    // --- TEST METHOD A: Standard (tanvar.py style) ---
+    function sendTypeA() {
+        if(!ws) return;
+        let txt = document.getElementById("msgText").value;
+        let room = document.getElementById("roomName").value;
+        
+        let payload = {
+            handler: "room_message",
+            id: genId(),
+            room: room,
+            type: "text",
+            body: txt,
+            url: "",
+            length: ""
+        };
+        ws.send(JSON.stringify(payload));
+        log("Sent Method A (Standard)", "tx");
     }
 
-    function stopAttack() {
-        isSpamming = false;
-        clearInterval(spamInterval);
-        log("⏸️ ATTACK PAUSED.", "log-sys");
+    // --- TEST METHOD B: With integer length ---
+    function sendTypeB() {
+        if(!ws) return;
+        let txt = document.getElementById("msgText").value;
+        let room = document.getElementById("roomName").value;
+        
+        let payload = {
+            handler: "room_message",
+            id: genId(),
+            room: room,
+            type: "text",
+            body: txt,
+            url: "",
+            length: 0 // Try integer 0
+        };
+        ws.send(JSON.stringify(payload));
+        log("Sent Method B (Length: 0)", "tx");
     }
 
-    function disconnectAll() {
-        stopAttack();
-        isConnected = false;
-        bots.forEach(b => b.disconnect());
-        bots = [];
-        log("❌ ALL DISCONNECTED.", "log-out");
+    // --- TEST METHOD C: Minimal ---
+    function sendTypeC() {
+        if(!ws) return;
+        let txt = document.getElementById("msgText").value;
+        let room = document.getElementById("roomName").value;
+        
+        let payload = {
+            handler: "room_message",
+            id: genId(),
+            room: room,
+            type: "text",
+            body: txt
+        };
+        ws.send(JSON.stringify(payload));
+        log("Sent Method C (Minimal)", "tx");
+    }
+
+    function killBot() {
+        if(ws) ws.close();
+        ws = null;
     }
 
 </script>
