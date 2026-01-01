@@ -8,71 +8,73 @@ HTML_CODE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS PRIME</title>
+    <title>NEXUS COMMANDER</title>
     <style>
-        /* --- DARK THEME --- */
-        body { background-color: #000; color: #00ff00; font-family: 'Courier New', monospace; margin: 0; padding: 5px; height: 100vh; display: flex; flex-direction: column; }
+        /* HACKER THEME */
+        body { background-color: #050505; color: #00ff00; font-family: 'Consolas', monospace; margin: 0; padding: 10px; }
         
-        /* LAYOUT */
-        .main { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; flex: 1; overflow: hidden; }
-        @media (max-width: 600px) { .main { grid-template-columns: 1fr; } }
+        .container { max-width: 100%; margin: auto; }
+        .panel { border: 1px solid #333; background: #0a0a0a; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        
+        h2 { text-align: center; border-bottom: 2px solid #00ff00; padding-bottom: 5px; color: white; margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
+        h3 { border-bottom: 1px dashed #444; padding-bottom: 3px; color: #ccc; font-size: 14px; margin-top: 0; }
 
-        .panel { border: 1px solid #333; background: #080808; padding: 5px; display: flex; flex-direction: column; }
-        
-        /* INPUTS */
-        label { color: #888; font-size: 10px; font-weight: bold; display: block; margin-top: 5px; }
+        /* CONTROLS */
+        label { color: #888; font-size: 10px; font-weight: bold; display: block; margin-top: 8px; }
         input, textarea, select { 
             width: 100%; background: #111; color: #fff; border: 1px solid #444; 
-            padding: 5px; margin-top: 2px; box-sizing: border-box; font-size: 11px;
+            padding: 8px; margin-top: 2px; box-sizing: border-box; font-family: monospace; font-size: 11px;
         }
-        textarea { height: 60px; color: yellow; }
+        textarea { height: 80px; color: yellow; border: 1px solid #666; }
 
         /* BUTTONS */
-        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
-        button { flex: 1; padding: 10px; font-weight: bold; cursor: pointer; border: none; border-radius: 3px; font-size: 11px; }
-        .btn-go { background: green; color: white; }
-        .btn-stop { background: red; color: white; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; }
+        button { padding: 12px; font-weight: bold; cursor: pointer; border: none; border-radius: 2px; font-size: 11px; color: white; }
+        
+        .btn-connect { background: #00008b; width: 100%; margin-top: 10px; } /* Blue */
+        .btn-attack { background: #006400; } /* Green */
+        .btn-stop { background: #8b0000; } /* Red */
 
         /* MONITORING */
-        .scroll { overflow-y: scroll; background: #000; border: 1px solid #222; padding: 5px; flex: 1; font-size: 10px; }
-        .user-row { display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #222; padding: 2px; }
-        .user-pic { width: 18px; height: 18px; border-radius: 50%; }
+        .scroll-box { height: 150px; overflow-y: scroll; background: #000; border: 1px solid #222; padding: 5px; font-size: 10px; }
         
+        /* USER LIST */
+        .user-row { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #222; padding: 3px; }
+        .user-pic { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #333; }
+        .user-name { color: #ddd; }
+        .bot-tag { color: lime; font-size: 8px; border: 1px solid lime; padding: 0 2px; border-radius: 2px; }
+
         /* LOGS */
-        .log-entry { border-bottom: 1px solid #111; padding: 1px; }
-        .sent { color: cyan; }
-        .err { color: red; }
+        .log-line { border-bottom: 1px solid #111; padding: 1px; }
+        .log-in { color: yellow; }
+        .log-out { color: cyan; }
+        .log-sys { color: #888; }
     </style>
 </head>
 <body>
 
-<h3 style="text-align:center; margin:5px; border-bottom:1px solid lime;">🤖 NEXUS PRIME</h3>
+<div class="container">
+    <h2>⚔️ NEXUS COMMANDER ⚔️</h2>
 
-<div class="main">
-    <!-- LEFT: CONTROLS -->
+    <!-- STEP 1: CONNECTION -->
     <div class="panel">
-        <label>🎯 Room Name</label>
+        <h3>1. CONNECTION</h3>
+        <label>🎯 Room Name:</label>
         <input type="text" id="roomName" value="ملتقى🥂العرب">
 
-        <label>📝 Bots (user#pass@...)</label>
+        <label>💂 Bots (user#pass@...)</label>
         <textarea id="accString" placeholder="bot1#pass123@bot2#pass123@"></textarea>
 
-        <!-- TIMERS RESTORED -->
-        <div style="display:flex; gap:5px;">
-            <div style="flex:1">
-                <label>⏳ Start In (s):</label>
-                <input type="number" id="startDelay" value="2">
-            </div>
-            <div style="flex:1">
-                <label>⏱️ Run For (s):</label>
-                <input type="number" id="duration" value="60">
-            </div>
-        </div>
+        <button class="btn-connect" onclick="connectArmy()">🔌 CONNECT ARMY (LOGIN ONLY)</button>
+    </div>
 
+    <!-- STEP 2: ATTACK -->
+    <div class="panel">
+        <h3>2. ACTION</h3>
         <div style="display:flex; gap:5px;">
             <div style="flex:1">
                 <label>⚡ Speed (ms):</label>
-                <input type="number" id="speed" value="2000">
+                <input type="number" id="spamSpeed" value="2000">
             </div>
             <div style="flex:1">
                 <label>🎭 Mode:</label>
@@ -84,47 +86,48 @@ HTML_CODE = """
         </div>
 
         <label>💬 Message:</label>
-        <input type="text" id="customMsg" placeholder="Hello">
+        <input type="text" id="customMsg" placeholder="Hello Chat!">
 
-        <div class="btn-group">
-            <button class="btn-go" onclick="startMission()">🚀 START</button>
-            <button class="btn-stop" onclick="stopMission()">🛑 STOP</button>
+        <div class="btn-grid">
+            <button class="btn-attack" onclick="startAttack()">🔥 START SPAM</button>
+            <button class="btn-stop" onclick="stopAttack()">⏸️ PAUSE SPAM</button>
         </div>
         
-        <div id="statusBox" style="margin-top:5px; font-size:10px; color:orange;">Ready.</div>
+        <button class="btn-stop" style="width:100%; margin-top:5px; background: #444;" onclick="disconnectAll()">❌ DISCONNECT ALL</button>
     </div>
 
-    <!-- RIGHT: MONITOR -->
+    <!-- MONITOR -->
     <div class="panel">
-        <div style="font-size:10px; color:#aaa;">👥 USERS IN ROOM: <span id="uCount" style="color:white;">0</span></div>
-        <div id="userList" class="scroll" style="height:100px;"></div>
-        
-        <div style="font-size:10px; color:#aaa; margin-top:5px;">📜 LIVE LOGS:</div>
-        <div id="logs" class="scroll"></div>
+        <h3>👥 Room Users (<span id="uCount">0</span>)</h3>
+        <div id="userList" class="scroll-box" style="height:120px;"></div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="panel">
+        <h3>📜 Live Logs</h3>
+        <div id="logs" class="scroll-box"></div>
     </div>
 </div>
 
 <script>
-    let activeBots = [];
-    let isRunning = false;
-    let spamTimer = null;
-    let stopTimer = null;
+    let bots = [];
+    let isConnected = false;
+    let isSpamming = false;
+    let spamInterval = null;
     let usersMap = new Map();
+    let myBotNames = [];
 
     // --- UTILS ---
-    function log(msg, type="") {
+    function log(msg, type="log-sys") {
         let box = document.getElementById("logs");
         let d = document.createElement("div");
-        d.className = "log-entry " + type;
+        d.className = "log-line " + type;
         d.innerText = "> " + msg;
         box.prepend(d);
     }
 
-    function status(msg) {
-        document.getElementById("statusBox").innerText = msg;
-    }
-
-    function genId(len=18) {
+    // ID Generator (20 chars like tanvar.py)
+    function genId(len=20) {
         let c="abcdef0123456789", s="";
         for(let i=0; i<len; i++) s += c.charAt(Math.floor(Math.random()*c.length));
         return s;
@@ -138,18 +141,27 @@ HTML_CODE = """
 
         usersMap.forEach((u) => {
             let name = u.name || u.username || "Unknown";
-            let icon = u.avatar_url || u.icon || "https://ui-avatars.com/api/?name="+name;
-            if(!icon.startsWith("http")) icon = "https://chatp.net" + icon;
+            let isMyBot = myBotNames.includes(name);
             
-            let d = document.createElement("div");
-            d.className = "user-row";
-            d.innerHTML = `<img src="${icon}" class="user-pic"> <span>${name}</span>`;
-            box.appendChild(d);
+            // Avatar Fix
+            let icon = u.avatar_url || u.icon || "https://ui-avatars.com/api/?name="+name;
+            if(icon && !icon.startsWith("http")) icon = "https://chatp.net" + icon;
+
+            let row = document.createElement("div");
+            row.className = "user-row";
+            
+            let tag = isMyBot ? '<span class="bot-tag">BOT</span>' : '';
+            
+            row.innerHTML = `
+                <img src="${icon}" class="user-pic"> 
+                <span class="user-name" style="color:${isMyBot ? 'lime':'#ccc'}">${name} ${tag}</span>
+            `;
+            box.appendChild(row);
         });
     }
 
-    // --- BOT LOGIC ---
-    const ASCII = ["(｡♥‿♥｡)", "ʕ•ᴥ•ʔ", "🔥", "❤️", "⚡", "🚀", "✨"];
+    // --- BOT CLASS ---
+    const ASCII = ["(｡♥‿♥｡)", "ʕ•ᴥ•ʔ", "✨", "🔥", "❤️", "🚀", "⚡"];
 
     class Bot {
         constructor(user, pass, room) {
@@ -161,45 +173,60 @@ HTML_CODE = """
         }
 
         connect() {
-            if(!isRunning) return;
+            if(this.ws) return; // Already connected
             
             this.ws = new WebSocket("wss://chatp.net:5333/server");
 
             this.ws.onopen = () => {
-                // LOGIN
+                log(`${this.user}: Socket Open. Logging in...`);
+                // Login
                 this.send({ handler: "login", id: genId(), username: this.user, password: this.pass });
             };
 
             this.ws.onmessage = (e) => {
                 let data = JSON.parse(e.data);
 
-                // 1. LOGIN OK -> JOIN
+                // 1. LOGIN SUCCESS -> JOIN ROOM
                 if(data.handler === "login_event" && data.type === "success") {
+                    log(`${this.user}: Login OK. Joining...`, "log-in");
                     this.send({ handler: "room_join", id: genId(), name: this.room });
                 }
                 
-                // 2. JOINED -> READY
-                else if(data.handler === "room_event" && data.type === "room_joined") {
-                    this.joined = true;
-                    log(`${this.user} Joined!`);
+                // 1.1 LOGIN FAIL
+                else if(data.handler === "login_event" && data.type === "error") {
+                    log(`${this.user}: Login FAILED!`, "log-out");
+                    this.ws.close();
                 }
 
-                // 3. CAPTURE USERS
+                // 2. JOINED ROOM (READY)
+                else if(data.handler === "room_event" && data.type === "room_joined") {
+                    this.joined = true;
+                    log(`${this.user}: Joined Room! Waiting for command.`, "log-in");
+                }
+
+                // 3. CAPTURE USERS (ROSTER)
                 else if(data.handler === "roster") {
                     if(data.users) {
                         data.users.forEach(u => usersMap.set(u.id || u.user_id, u));
                         renderUsers();
                     }
                 }
+                // LIVE JOIN
                 else if(data.handler === "room_event" && data.type === "join") {
                     usersMap.set(data.id || data.user_id, data);
+                    renderUsers();
+                }
+                // LIVE LEAVE
+                else if(data.handler === "room_event" && data.type === "leave") {
+                    usersMap.delete(data.id || data.user_id);
                     renderUsers();
                 }
             };
 
             this.ws.onclose = () => {
                 this.joined = false;
-                if(isRunning) log(`${this.user} Disconnected`, "err");
+                this.ws = null;
+                log(`${this.user}: Disconnected`, "log-out");
             };
         }
 
@@ -212,85 +239,91 @@ HTML_CODE = """
         sendMessage(txt) {
             if(!this.joined) return;
             
-            // --- FIXED PAYLOAD (Based on tanvar.py) ---
+            // --- STRICT PAYLOAD (Matching tanvar.py exactly) ---
             this.send({
                 handler: "room_message",
-                id: genId(),       // Unique ID every time
+                id: genId(),       // 20 chars
                 room: this.room,
-                type: "text",      // Type text
+                type: "text",
                 body: txt,
-                url: "",           // Empty String (Important)
-                length: ""         // Empty String (Critical Fix)
+                url: "",
+                length: ""         // Empty String
             });
-            log(`${this.user} -> Sent`, "sent");
+        }
+        
+        disconnect() {
+            if(this.ws) this.ws.close();
         }
     }
 
-    // --- MAIN CONTROLLER ---
-    function startMission() {
-        if(isRunning) return;
-        
-        let raw = document.getElementById("accString").value;
-        let room = document.getElementById("roomName").value;
-        if(!raw.includes("#")) { alert("No Accounts!"); return; }
+    // --- CONTROLLER FUNCTIONS ---
 
-        isRunning = true;
+    function connectArmy() {
+        if(isConnected) { alert("Already Connected!"); return; }
+        
+        let room = document.getElementById("roomName").value;
+        let raw = document.getElementById("accString").value;
+        if(!raw.includes("#")) { alert("No Bots Found!"); return; }
+
         usersMap.clear();
         renderUsers();
         document.getElementById("logs").innerHTML = "";
-        
-        // 1. Launch Bots
+        myBotNames = [];
+        bots = [];
+
         let list = raw.split("@").filter(s => s.includes("#"));
-        activeBots = list.map(s => {
-            let [u, p] = s.split("#");
-            return new Bot(u.trim(), p.trim(), room);
+        
+        list.forEach((acc, i) => {
+            let [u, p] = acc.split("#");
+            let user = u.trim();
+            myBotNames.push(user);
+            
+            let bot = new Bot(user, p.trim(), room);
+            bots.push(bot);
+            
+            // Stagger connections (0.5s gap)
+            setTimeout(() => bot.connect(), i * 500);
         });
 
-        status(`Connecting ${activeBots.length} bots...`);
-        activeBots.forEach((b, i) => setTimeout(() => { if(isRunning) b.connect(); }, i*300));
-
-        // 2. Schedule Spam Start
-        let startDelay = document.getElementById("startDelay").value * 1000;
-        let speed = document.getElementById("speed").value;
-        
-        status(`Waiting ${startDelay/1000}s to start messaging...`);
-
-        setTimeout(() => {
-            if(!isRunning) return;
-            status("🔥 SPAMMING ACTIVE 🔥");
-            log("--- STARTING MESSAGES ---");
-
-            spamInterval = setInterval(() => {
-                if(!isRunning) return;
-                
-                let mode = document.getElementById("msgMode").value;
-                let txt = document.getElementById("customMsg").value || ".";
-                
-                activeBots.forEach(b => {
-                    if(b.joined) {
-                        let msg = (mode === "ascii") ? ASCII[Math.floor(Math.random()*ASCII.length)] : txt;
-                        b.sendMessage(msg);
-                    }
-                });
-            }, speed);
-
-        }, startDelay);
-
-        // 3. Schedule Auto Stop
-        let duration = document.getElementById("duration").value * 1000;
-        stopTimer = setTimeout(() => {
-            log("⏳ Time Limit Reached.");
-            stopMission();
-        }, duration + startDelay);
+        isConnected = true;
+        log(`[*] Connecting ${list.length} bots...`);
     }
 
-    function stopMission() {
-        isRunning = false;
+    function startAttack() {
+        if(!isConnected) { alert("Connect Army First!"); return; }
+        if(isSpamming) return;
+
+        isSpamming = true;
+        let speed = parseInt(document.getElementById("spamSpeed").value);
+        log("🔥 ATTACK STARTED!", "log-in");
+
+        spamInterval = setInterval(() => {
+            if(!isSpamming) return;
+            
+            let mode = document.getElementById("msgMode").value;
+            let txt = document.getElementById("customMsg").value || "Hello";
+
+            bots.forEach(b => {
+                if(b.joined) {
+                    let msg = (mode === "ascii") ? ASCII[Math.floor(Math.random()*ASCII.length)] : txt;
+                    b.sendMessage(msg);
+                }
+            });
+        }, speed);
+    }
+
+    function stopAttack() {
+        isSpamming = false;
         clearInterval(spamInterval);
-        clearTimeout(stopTimer);
-        status("🛑 STOPPED");
-        activeBots.forEach(b => { if(b.ws) b.ws.close(); });
-        activeBots = [];
+        log("⏸️ ATTACK PAUSED.", "log-sys");
+    }
+
+    function disconnectAll() {
+        stopAttack();
+        isConnected = false;
+        bots.forEach(b => b.disconnect());
+        bots = [];
+        log("❌ ALL DISCONNECTED.", "log-out");
     }
 
 </script>
