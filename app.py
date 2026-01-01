@@ -8,72 +8,124 @@ HTML_CODE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS DEBUGGER</title>
+    <title>NEXUS ULTIMATE</title>
     <style>
-        body { background: #000; color: #0f0; font-family: monospace; padding: 10px; }
-        .box { border: 1px solid #444; padding: 10px; margin-bottom: 10px; background: #111; }
+        body { background-color: #000; color: #00ff00; font-family: 'Courier New', monospace; padding: 10px; margin: 0; }
         
-        input, textarea { width: 100%; background: #222; color: #fff; border: 1px solid #555; padding: 5px; box-sizing: border-box; }
-        textarea { height: 60px; }
+        .container { max-width: 100%; margin: auto; }
+        .box { border: 1px solid #333; background: #080808; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
         
-        button { width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; font-weight: bold; border: none; }
-        .btn-con { background: blue; color: white; }
-        .btn-a { background: green; color: white; }
-        .btn-b { background: orange; color: black; }
-        .btn-c { background: purple; color: white; }
-        .btn-kill { background: red; color: white; }
+        h2 { text-align: center; border-bottom: 2px solid #00ff00; padding-bottom: 5px; color: white; margin-top: 0; }
+        h3 { border-bottom: 1px dashed #444; padding-bottom: 3px; color: #ccc; font-size: 13px; margin: 0 0 5px 0; }
 
-        #debug-log { 
-            height: 300px; overflow-y: scroll; border: 1px solid #666; 
-            padding: 5px; font-size: 10px; background: #000; white-space: pre-wrap;
+        label { color: #888; font-size: 10px; font-weight: bold; display: block; margin-top: 8px; }
+        input, textarea, select { 
+            width: 100%; background: #111; color: #fff; border: 1px solid #444; 
+            padding: 8px; margin-top: 2px; box-sizing: border-box; font-family: monospace; font-size: 11px;
         }
-        .tx { color: cyan; } /* Sent */
-        .rx { color: yellow; } /* Received */
-        .err { color: red; }
+        textarea { height: 80px; color: yellow; border: 1px solid #666; }
+
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 10px; }
+        button { padding: 12px; font-weight: bold; cursor: pointer; border: none; border-radius: 2px; font-size: 11px; color: white; }
+        
+        .btn-connect { background: #00008b; width: 100%; margin-top: 10px; } 
+        .btn-attack { background: #006400; } 
+        .btn-stop { background: #8b0000; } 
+
+        .scroll-box { height: 150px; overflow-y: scroll; background: #000; border: 1px solid #222; padding: 5px; font-size: 10px; }
+        
+        /* USER LIST STYLE */
+        .user-row { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #222; padding: 3px; }
+        .user-pic { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #333; }
+        .user-name { color: #ddd; }
+        .is-bot { color: lime; }
+
+        /* LOGS STYLE */
+        .log-line { border-bottom: 1px solid #111; padding: 1px; }
+        .log-sys { color: #888; }
+        .log-chat { color: cyan; } /* Chat messages */
+        .log-err { color: red; }
+        
+        .status-bar { font-size: 10px; color: orange; margin-bottom: 5px; text-align: center; }
     </style>
 </head>
 <body>
 
-<h2 style="text-align:center; margin:0;">🛠️ DEBUG MODE</h2>
-<p style="text-align:center; font-size:10px; color:#aaa;">Check the logs below to see why messages fail.</p>
+<div class="container">
+    <h2>⚡ NEXUS ULTIMATE ⚡</h2>
 
-<div class="box">
-    <label>Room:</label>
-    <input type="text" id="roomName" value="ملتقى🥂العرب">
-    
-    <label>Bot (user#pass):</label>
-    <input type="text" id="botCreds" placeholder="id#pass">
-    
-    <button class="btn-con" onclick="connectBot()">1. CONNECT SINGLE BOT</button>
-    <button class="btn-kill" onclick="killBot()">❌ DISCONNECT</button>
-</div>
+    <!-- STEP 1: SETUP -->
+    <div class="box">
+        <h3>1. CONFIGURATION</h3>
+        <label>🎯 Room Name:</label>
+        <input type="text" id="roomName" value="ملتقى🥂العرب">
 
-<div class="box">
-    <label>Message Test:</label>
-    <input type="text" id="msgText" value="Test Message">
-    
-    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px;">
-        <button class="btn-a" onclick="sendTypeA()">Method A</button>
-        <button class="btn-b" onclick="sendTypeB()">Method B</button>
-        <button class="btn-c" onclick="sendTypeC()">Method C</button>
+        <label>💂 Bots (user#pass@...)</label>
+        <textarea id="accString" placeholder="bot1#pass123@bot2#pass123@"></textarea>
+
+        <button class="btn-connect" onclick="connectArmy()">🔌 CONNECT BOTS (LOGIN & JOIN)</button>
+        <div id="connStatus" class="status-bar">Status: Idle</div>
     </div>
-    <small style="color:#aaa;">Try all 3 buttons one by one.</small>
-</div>
 
-<h3>📡 SERVER LOGS (RAW):</h3>
-<div id="debug-log"></div>
+    <!-- STEP 2: ATTACK -->
+    <div class="box">
+        <h3>2. ACTION CENTER</h3>
+        <div style="display:flex; gap:5px;">
+            <div style="flex:1">
+                <label>⚡ Speed (ms):</label>
+                <input type="number" id="spamSpeed" value="2000">
+            </div>
+            <div style="flex:1">
+                <label>🎭 Mode:</label>
+                <select id="msgMode">
+                    <option value="custom">Custom</option>
+                    <option value="ascii">ASCII</option>
+                </select>
+            </div>
+        </div>
+
+        <label>💬 Message:</label>
+        <input type="text" id="customMsg" placeholder="Hello Chat!">
+
+        <div class="btn-grid">
+            <button class="btn-attack" onclick="startAttack()">🔥 START ATTACK</button>
+            <button class="btn-stop" onclick="stopAttack()">⏸️ PAUSE</button>
+        </div>
+        <button class="btn-stop" style="width:100%; margin-top:5px; background:#444;" onclick="disconnectAll()">❌ DISCONNECT ALL</button>
+    </div>
+
+    <!-- MONITOR -->
+    <div class="box">
+        <h3>👥 Room Users (<span id="uCount">0</span>)</h3>
+        <div id="userList" class="scroll-box" style="height:120px;"></div>
+    </div>
+
+    <!-- CHAT FEED -->
+    <div class="box">
+        <h3>💬 Live Chat Feed</h3>
+        <div id="logs" class="scroll-box"></div>
+    </div>
+</div>
 
 <script>
-    let ws = null;
+    let bots = [];
     let isConnected = false;
-    let pingInterval = null;
+    let isSpamming = false;
+    let spamInterval = null;
+    let usersMap = new Map();
+    let myBotNames = [];
 
-    function log(text, type="rx") {
-        let box = document.getElementById("debug-log");
+    // --- UTILS ---
+    function log(msg, type="log-sys") {
+        let box = document.getElementById("logs");
         let d = document.createElement("div");
-        d.className = type;
-        d.innerText = (type === "tx" ? "📤 " : "📥 ") + text;
+        d.className = "log-line " + type;
+        d.innerText = msg;
         box.prepend(d);
+    }
+
+    function status(msg) {
+        document.getElementById("connStatus").innerText = msg;
     }
 
     function genId(len=20) {
@@ -82,106 +134,194 @@ HTML_CODE = """
         return s;
     }
 
-    function connectBot() {
-        if(ws) { alert("Already connected!"); return; }
-        
-        let creds = document.getElementById("botCreds").value;
-        if(!creds.includes("#")) { alert("Enter user#pass"); return; }
-        let [u, p] = creds.split("#");
-        let room = document.getElementById("roomName").value;
+    // --- UI RENDER ---
+    function renderUsers() {
+        let box = document.getElementById("userList");
+        box.innerHTML = "";
+        document.getElementById("uCount").innerText = usersMap.size;
 
-        ws = new WebSocket("wss://chatp.net:5333/server");
+        usersMap.forEach((u) => {
+            let name = u.username || u.name || "Unknown"; // Fix parsing
+            let isMyBot = myBotNames.includes(name);
+            
+            // Fix Avatar URL logic based on logs
+            let icon = "https://ui-avatars.com/api/?name=" + name;
+            // The logs don't show full avatar url in user list sometimes, so we default or fix if present
+            
+            let row = document.createElement("div");
+            row.className = "user-row";
+            let cls = isMyBot ? "is-bot" : "";
+            
+            row.innerHTML = `
+                <img src="${icon}" class="user-pic"> 
+                <span class="user-name ${cls}">${name}</span>
+            `;
+            box.appendChild(row);
+        });
+    }
 
-        ws.onopen = () => {
-            log("Connected to Socket. Sending Login...", "tx");
-            let loginData = { handler: "login", id: genId(), username: u, password: p };
-            ws.send(JSON.stringify(loginData));
-            
-            // Keep Alive Ping (Every 30s)
-            pingInterval = setInterval(() => {
-                if(ws.readyState === WebSocket.OPEN) ws.send(""); // Empty packet for ping
-            }, 30000);
-        };
+    // --- BOT LOGIC ---
+    const ASCII = ["(｡♥‿♥｡)", "ʕ•ᴥ•ʔ", "🔥", "❤️", "⚡", "🚀", "💀"];
 
-        ws.onmessage = (e) => {
-            log(e.data, "rx"); // PRINT RAW SERVER RESPONSE
+    class Bot {
+        constructor(user, pass, room) {
+            this.user = user;
+            this.pass = pass;
+            this.room = room;
+            this.ws = null;
+            this.joined = false;
+        }
+
+        connect() {
+            if(this.ws) return;
             
-            let data = JSON.parse(e.data);
-            
-            // Auto Join on Login Success
-            if(data.handler === "login_event" && data.type === "success") {
-                log("Login Success! Joining Room...", "tx");
-                ws.send(JSON.stringify({ handler: "room_join", id: genId(), name: room }));
+            this.ws = new WebSocket("wss://chatp.net:5333/server");
+
+            this.ws.onopen = () => {
+                this.send({ handler: "login", id: genId(), username: this.user, password: this.pass });
+            };
+
+            this.ws.onmessage = (e) => {
+                let data = JSON.parse(e.data);
+
+                // 1. LOGIN OK
+                if(data.handler === "login_event" && data.type === "success") {
+                    this.send({ handler: "room_join", id: genId(), name: this.room });
+                }
+                
+                // 2. JOINED (THIS IS WHERE USER LIST IS!)
+                else if(data.handler === "room_event" && data.type === "you_joined") {
+                    this.joined = true;
+                    // FIX: Capture user list from 'users' array inside 'you_joined'
+                    if(data.users && Array.isArray(data.users)) {
+                        data.users.forEach(u => usersMap.set(u.username, u));
+                        renderUsers();
+                    }
+                    log(`[SYS] ${this.user} Joined & Parsed List`, "log-sys");
+                }
+
+                // 3. OTHER USERS JOINING/LEAVING
+                else if(data.handler === "room_event" && data.type === "join") {
+                    let uName = data.username || data.name;
+                    if(uName) {
+                        usersMap.set(uName, {username: uName});
+                        renderUsers();
+                        log(`[JOIN] ${uName}`, "log-sys");
+                    }
+                }
+                else if(data.handler === "room_event" && data.type === "leave") {
+                    let uName = data.username || data.name;
+                    if(uName) {
+                        usersMap.delete(uName);
+                        renderUsers();
+                    }
+                }
+
+                // 4. CHAT MESSAGES (Confirm message sent)
+                else if(data.handler === "room_event" && data.type === "text") {
+                    log(`[CHAT] ${data.from}: ${data.body}`, "log-chat");
+                }
+            };
+
+            this.ws.onclose = () => {
+                this.joined = false;
+                this.ws = null;
+            };
+        }
+
+        send(json) {
+            if(this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.ws.send(JSON.stringify(json));
             }
-        };
+        }
 
-        ws.onclose = () => {
-            log("Socket Closed / Disconnected", "err");
-            ws = null;
-            clearInterval(pingInterval);
-        };
+        sendMessage(txt) {
+            if(!this.joined) return;
+            
+            // METHOD A PAYLOAD (Proven Working)
+            this.send({
+                handler: "room_message",
+                id: genId(),
+                room: this.room,
+                type: "text",
+                body: txt,
+                url: "",
+                length: ""
+            });
+        }
         
-        ws.onerror = (e) => log("Socket Error!", "err");
+        disconnect() {
+            if(this.ws) this.ws.close();
+        }
     }
 
-    // --- TEST METHOD A: Standard (tanvar.py style) ---
-    function sendTypeA() {
-        if(!ws) return;
-        let txt = document.getElementById("msgText").value;
+    // --- CONTROLS ---
+    function connectArmy() {
+        if(isConnected) { alert("Already connected!"); return; }
+        
         let room = document.getElementById("roomName").value;
+        let raw = document.getElementById("accString").value;
+        if(!raw.includes("#")) { alert("Enter Bots!"); return; }
+
+        usersMap.clear();
+        renderUsers();
+        document.getElementById("logs").innerHTML = "";
+        myBotNames = [];
+        bots = [];
+
+        let list = raw.split("@").filter(s => s.includes("#"));
         
-        let payload = {
-            handler: "room_message",
-            id: genId(),
-            room: room,
-            type: "text",
-            body: txt,
-            url: "",
-            length: ""
-        };
-        ws.send(JSON.stringify(payload));
-        log("Sent Method A (Standard)", "tx");
+        list.forEach((acc, i) => {
+            let [u, p] = acc.split("#");
+            let user = u.trim();
+            myBotNames.push(user);
+            
+            let bot = new Bot(user, p.trim(), room);
+            bots.push(bot);
+            
+            setTimeout(() => bot.connect(), i * 800);
+        });
+
+        isConnected = true;
+        status(`Connecting ${list.length} bots...`);
     }
 
-    // --- TEST METHOD B: With integer length ---
-    function sendTypeB() {
-        if(!ws) return;
-        let txt = document.getElementById("msgText").value;
-        let room = document.getElementById("roomName").value;
-        
-        let payload = {
-            handler: "room_message",
-            id: genId(),
-            room: room,
-            type: "text",
-            body: txt,
-            url: "",
-            length: 0 // Try integer 0
-        };
-        ws.send(JSON.stringify(payload));
-        log("Sent Method B (Length: 0)", "tx");
+    function startAttack() {
+        if(!isConnected) { alert("Connect first!"); return; }
+        if(isSpamming) return;
+
+        isSpamming = true;
+        let speed = parseInt(document.getElementById("spamSpeed").value);
+        log("🔥 ATTACK STARTED", "log-sys");
+
+        spamInterval = setInterval(() => {
+            if(!isSpamming) return;
+            
+            let mode = document.getElementById("msgMode").value;
+            let txt = document.getElementById("customMsg").value || "Hello";
+
+            bots.forEach(b => {
+                if(b.joined) {
+                    let msg = (mode === "ascii") ? ASCII[Math.floor(Math.random()*ASCII.length)] : txt;
+                    b.sendMessage(msg);
+                }
+            });
+        }, speed);
     }
 
-    // --- TEST METHOD C: Minimal ---
-    function sendTypeC() {
-        if(!ws) return;
-        let txt = document.getElementById("msgText").value;
-        let room = document.getElementById("roomName").value;
-        
-        let payload = {
-            handler: "room_message",
-            id: genId(),
-            room: room,
-            type: "text",
-            body: txt
-        };
-        ws.send(JSON.stringify(payload));
-        log("Sent Method C (Minimal)", "tx");
+    function stopAttack() {
+        isSpamming = false;
+        clearInterval(spamInterval);
+        log("⏸️ PAUSED", "log-sys");
     }
 
-    function killBot() {
-        if(ws) ws.close();
-        ws = null;
+    function disconnectAll() {
+        stopAttack();
+        isConnected = false;
+        bots.forEach(b => b.disconnect());
+        bots = [];
+        status("Status: Disconnected");
+        log("❌ DISCONNECTED", "log-err");
     }
 
 </script>
