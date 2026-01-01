@@ -9,28 +9,31 @@ HTML_CODE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remanu 10-Bot Army</title>
+    <title>Remanu Bot Panel</title>
     <style>
-        body { background-color: #000; color: #00ff00; font-family: monospace; padding: 10px; }
+        body { background-color: #000; color: #00ff00; font-family: monospace; padding: 15px; }
         .container { max-width: 100%; margin: auto; }
-        h1 { text-align: center; border-bottom: 1px solid green; padding-bottom: 10px; }
+        h2 { text-align: center; border-bottom: 1px solid green; padding-bottom: 10px; }
         
-        .status-box { border: 1px solid #333; padding: 10px; margin-bottom: 15px; background: #111; }
+        label { font-weight: bold; display: block; margin-top: 10px; color: #fff; }
         
-        input { 
+        input, textarea { 
             width: 100%; background: #222; color: #fff; border: 1px solid #555; 
-            padding: 10px; margin-bottom: 10px; box-sizing: border-box;
+            padding: 10px; margin-top: 5px; box-sizing: border-box; border-radius: 5px;
         }
         
+        /* Input Box for ID String */
+        textarea { height: 120px; font-size: 13px; font-family: monospace; color: yellow; }
+
         button { 
             width: 100%; padding: 15px; font-weight: bold; cursor: pointer; 
-            border: none; margin-top: 5px; font-size: 16px;
+            border: none; margin-top: 15px; font-size: 16px; border-radius: 5px;
         }
         .btn-start { background: green; color: white; }
         .btn-stop { background: red; color: white; }
         
         #logs { 
-            height: 350px; overflow-y: scroll; border: 1px solid #333; 
+            height: 300px; overflow-y: scroll; border: 1px solid #333; 
             padding: 5px; font-size: 11px; margin-top: 20px; background: #050505;
         }
         .log-entry { border-bottom: 1px solid #222; padding: 2px; }
@@ -39,42 +42,23 @@ HTML_CODE = """
 <body>
 
 <div class="container">
-    <h1>🤖 10-Bot Controller</h1>
-    <p style="text-align:center; color: #777;">Runs on YOUR Mobile IP</p>
+    <h2>🤖 Remanu Bot Controller</h2>
+    <p style="text-align:center; color: #777; font-size: 12px;">Runs on YOUR Mobile Data (IP)</p>
 
-    <div class="status-box">
-        <label>🎯 Room Name:</label>
-        <input type="text" id="roomName" value="ملتقى🥂العرب">
-        
-        <label>💬 Message (Optional):</label>
-        <input type="text" id="msg" placeholder="Hello from Bot Army!">
-    </div>
+    <label>🎯 Target Room:</label>
+    <input type="text" id="roomName" value="ملتقى🥂العرب">
+    
+    <label>📝 Paste IDs (Format: user#pass@user#pass@)</label>
+    <textarea id="accountString" placeholder="raj#123@mohit#456@ali#789@"></textarea>
 
-    <button class="btn-start" onclick="startArmy()">🚀 LAUNCH 10 BOTS</button>
-    <button class="btn-stop" onclick="stopArmy()">🛑 STOP ALL</button>
+    <button class="btn-start" onclick="startBots()">🚀 LAUNCH BOTS</button>
+    <button class="btn-stop" onclick="stopBots()">🛑 STOP ALL</button>
 
     <h3>📜 Logs</h3>
     <div id="logs"></div>
 </div>
 
 <script>
-    // ==========================================
-    // 👇 YAHAN APNI 10 IDs DALEIN 👇
-    // ==========================================
-    const MY_BOTS = [
-        { u: "id_number_1", p: "password123" },
-        { u: "id_number_2", p: "password123" },
-        { u: "id_number_3", p: "password123" },
-        { u: "id_number_4", p: "password123" },
-        { u: "id_number_5", p: "password123" },
-        { u: "id_number_6", p: "password123" },
-        { u: "id_number_7", p: "password123" },
-        { u: "id_number_8", p: "password123" },
-        { u: "id_number_9", p: "password123" },
-        { u: "id_number_10", p: "password123" }
-    ];
-    // ==========================================
-
     let activeSockets = [];
     let isRunning = false;
 
@@ -105,11 +89,11 @@ HTML_CODE = """
         connect() {
             if (!isRunning) return;
             
-            // Connect directly from Mobile Browser
+            // Mobile Browser to Chatp Direct Connection
             this.ws = new WebSocket("wss://chatp.net:5333/server");
 
             this.ws.onopen = () => {
-                log(`[${this.user}] Connected... Logging in`);
+                log(`[${this.user}] Connected. Logging in...`);
                 this.send({
                     handler: "login",
                     id: this.id,
@@ -122,40 +106,22 @@ HTML_CODE = """
                 if (!isRunning) return;
                 let data = JSON.parse(e.data);
 
-                // Login Success -> Join Room
                 if (data.handler === "login_event" && data.type === "success") {
-                    log(`[${this.user}] Login Success! Joining Room...`);
+                    log(`[${this.user}] Login OK! Joining Room...`);
                     this.send({
                         handler: "room_join",
                         id: generateId(),
                         name: this.room
                     });
                 }
-                
-                // Joined Room
                 else if (data.handler === "room_event" && data.type === "room_joined") {
-                    log(`[${this.user}] ENTERED ROOM! ✅`);
-                    
-                    // Optional: Send Message after 2 seconds
-                    let msg = document.getElementById("msg").value;
-                    if (msg) {
-                        setTimeout(() => {
-                            if(isRunning) {
-                                this.send({
-                                    handler: "room_message",
-                                    id: generateId(),
-                                    room: this.room,
-                                    type: "text",
-                                    body: msg
-                                });
-                                log(`[${this.user}] Message Sent!`);
-                            }
-                        }, 2000);
-                    }
+                    log(`[${this.user}] ✅ ENTERED ROOM`);
                 }
             };
 
             this.ws.onclose = () => log(`[${this.user}] Disconnected ❌`);
+            this.ws.onerror = () => log(`[${this.user}] Connection Error ⚠️`);
+            
             activeSockets.push(this.ws);
         }
 
@@ -164,15 +130,41 @@ HTML_CODE = """
         }
     }
 
-    function startArmy() {
+    function startBots() {
         if (isRunning) return;
-        isRunning = true;
-        let room = document.getElementById("roomName").value;
         
-        log(`[*] Launching ${MY_BOTS.length} Bots on Mobile IP...`);
+        let room = document.getElementById("roomName").value;
+        let rawString = document.getElementById("accountString").value;
 
-        // Har bot ko 0.5 second ke gap par connect karo taki browser hang na ho
-        MY_BOTS.forEach((botData, index) => {
+        if (!rawString.includes("#") || !rawString.includes("@")) {
+            alert("Format Error! Use: user#pass@user#pass@");
+            return;
+        }
+
+        isRunning = true;
+        log("[*] Parsing Accounts...");
+
+        // --- PARSING LOGIC (Format: id#pass@id#pass@) ---
+        // 1. Split by '@' to get accounts
+        let accounts = rawString.split("@");
+        let validBots = [];
+
+        accounts.forEach(acc => {
+            acc = acc.trim();
+            if (acc.includes("#")) {
+                let parts = acc.split("#");
+                let u = parts[0].trim();
+                let p = parts[1].trim();
+                if (u && p) {
+                    validBots.push({u: u, p: p});
+                }
+            }
+        });
+
+        log(`[*] Found ${validBots.length} Bots. Launching...`);
+
+        // Connect one by one with 500ms delay
+        validBots.forEach((botData, index) => {
             setTimeout(() => {
                 if (!isRunning) return;
                 let bot = new Bot(botData.u, botData.p, room);
@@ -181,9 +173,9 @@ HTML_CODE = """
         });
     }
 
-    function stopArmy() {
+    function stopBots() {
         isRunning = false;
-        log("[!] Stopping all connections...");
+        log("[!] Stopping all bots...");
         activeSockets.forEach(s => s.close());
         activeSockets = [];
     }
