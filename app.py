@@ -2,125 +2,255 @@ from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# --- HTML + JS DASHBOARD ---
 HTML_CODE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remanu Bot Panel</title>
+    <title>Remanu Ultimate Command Center</title>
     <style>
-        body { background-color: #000; color: #00ff00; font-family: monospace; padding: 15px; }
-        .container { max-width: 100%; margin: auto; }
-        h2 { text-align: center; border-bottom: 1px solid green; padding-bottom: 10px; }
+        /* --- DARK THEME STYLING --- */
+        body { background-color: #050505; color: #00ff41; font-family: 'Courier New', monospace; margin: 0; padding: 10px; }
         
-        label { font-weight: bold; display: block; margin-top: 10px; color: #fff; }
-        
-        input, textarea { 
-            width: 100%; background: #222; color: #fff; border: 1px solid #555; 
-            padding: 10px; margin-top: 5px; box-sizing: border-box; border-radius: 5px;
-        }
-        
-        /* Input Box for ID String */
-        textarea { height: 120px; font-size: 13px; font-family: monospace; color: yellow; }
+        /* LAYOUT GRID */
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 768px) { .grid-container { grid-template-columns: 1fr; } }
 
-        button { 
-            width: 100%; padding: 15px; font-weight: bold; cursor: pointer; 
-            border: none; margin-top: 15px; font-size: 16px; border-radius: 5px;
+        /* BOXES */
+        .box { border: 1px solid #333; background: #111; padding: 10px; border-radius: 5px; }
+        h3 { margin-top: 0; border-bottom: 1px solid #00ff41; padding-bottom: 5px; color: white; font-size: 14px; }
+
+        /* INPUTS */
+        label { color: #aaa; font-size: 11px; font-weight: bold; display: block; margin-top: 8px; }
+        input, textarea, select { 
+            width: 100%; background: #1a1a1a; color: #fff; border: 1px solid #444; 
+            padding: 8px; margin-top: 3px; box-sizing: border-box; border-radius: 3px; font-size: 12px;
         }
+        textarea { height: 100px; color: yellow; border: 1px solid #666; font-family: monospace; }
+
+        /* BUTTONS */
+        button { width: 100%; padding: 10px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; border-radius: 3px; }
         .btn-start { background: green; color: white; }
         .btn-stop { background: red; color: white; }
+
+        /* LOGS & LISTS */
+        .scroll-box { height: 200px; overflow-y: scroll; background: #000; border: 1px solid #333; padding: 5px; font-size: 10px; }
         
-        #logs { 
-            height: 300px; overflow-y: scroll; border: 1px solid #333; 
-            padding: 5px; font-size: 11px; margin-top: 20px; background: #050505;
-        }
-        .log-entry { border-bottom: 1px solid #222; padding: 2px; }
+        /* BOT STATUS TABLE */
+        .status-row { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 2px; }
+        .st-online { color: #00ff00; }
+        .st-fail { color: #ff0000; text-decoration: line-through; }
+        .st-wait { color: #ffff00; }
+
+        /* ROOM USER LIST */
+        .user-item { display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #222; padding: 2px; }
+        .user-avatar { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #555; }
+        .user-name { color: white; }
+        .user-role { font-size: 9px; color: #aaa; }
+
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>🤖 Remanu Bot Controller</h2>
-    <p style="text-align:center; color: #777; font-size: 12px;">Runs on YOUR Mobile Data (IP)</p>
+<h2 style="text-align:center; margin:5px;">🤖 Remanu Command Center</h2>
 
-    <label>🎯 Target Room:</label>
-    <input type="text" id="roomName" value="ملتقى🥂العرب">
+<div class="grid-container">
     
-    <label>📝 Paste IDs (Format: user#pass@user#pass@)</label>
-    <textarea id="accountString" placeholder="raj#123@mohit#456@ali#789@"></textarea>
+    <!-- LEFT: CONTROLS -->
+    <div class="box">
+        <h3>🚀 Controls</h3>
+        <label>🎯 Target Room:</label>
+        <input type="text" id="roomName" value="ملتقى🥂العرب">
+        
+        <label>📝 Bots (user#pass@...)</label>
+        <textarea id="accountString" placeholder="user#pass@user#pass@"></textarea>
+        
+        <div style="display:flex; gap:5px;">
+            <div style="flex:1">
+                <label>⏱️ Delay (s):</label>
+                <input type="number" id="msgDelay" value="2">
+            </div>
+            <div style="flex:1">
+                <label>🎭 Mode:</label>
+                <select id="msgMode">
+                    <option value="custom">✍️ Custom</option>
+                    <option value="ascii">🎲 ASCII</option>
+                    <option value="ghost">👻 Ghost</option>
+                </select>
+            </div>
+        </div>
 
-    <button class="btn-start" onclick="startBots()">🚀 LAUNCH BOTS</button>
-    <button class="btn-stop" onclick="stopBots()">🛑 STOP ALL</button>
+        <input type="text" id="customText" placeholder="Message content..." style="margin-top:5px;">
 
-    <h3>📜 Logs</h3>
-    <div id="logs"></div>
+        <button class="btn-start" onclick="startBots()">LAUNCH SYSTEM</button>
+        <button class="btn-stop" onclick="stopBots()">EMERGENCY STOP</button>
+    </div>
+
+    <!-- RIGHT: MONITORING -->
+    <div class="box">
+        <h3>📊 Live Bot Status</h3>
+        <div id="botStatusList" class="scroll-box" style="height:100px;"></div>
+        
+        <h3 style="margin-top:10px;">👥 Room Users (<span id="userCount">0</span>)</h3>
+        <div id="roomUserList" class="scroll-box" style="height:150px;"></div>
+    </div>
+
+</div>
+
+<!-- LOGS AT BOTTOM -->
+<div class="box" style="margin-top:10px;">
+    <h3>📜 System Logs</h3>
+    <div id="logs" class="scroll-box" style="height:120px;"></div>
 </div>
 
 <script>
     let activeSockets = [];
     let isRunning = false;
+    let roomUserSet = new Set(); // To track unique users in room
 
+    // --- UTILS ---
     function log(msg) {
         let box = document.getElementById("logs");
         let div = document.createElement("div");
-        div.className = "log-entry";
         div.innerText = "> " + msg;
         box.prepend(div);
     }
 
+    function updateBotStatus(user, status) {
+        let box = document.getElementById("botStatusList");
+        let existing = document.getElementById("st-" + user);
+        
+        let colorClass = "st-wait";
+        if(status === "ONLINE") colorClass = "st-online";
+        if(status === "FAILED") colorClass = "st-fail";
+
+        let html = `<span class="${colorClass}">${user}</span> <span>[${status}]</span>`;
+
+        if (existing) {
+            existing.innerHTML = html;
+        } else {
+            let div = document.createElement("div");
+            div.id = "st-" + user;
+            div.className = "status-row";
+            div.innerHTML = html;
+            box.appendChild(div);
+        }
+    }
+
+    // --- AUTO DELETE FAILED ID ---
+    function removeFailedID(badUser) {
+        let textarea = document.getElementById("accountString");
+        let raw = textarea.value;
+        
+        // Logic to remove "user#pass@" or "user#pass"
+        // Simple regex approach
+        let regex = new RegExp(badUser + "#[^@]+@?", "g");
+        let newVal = raw.replace(regex, "");
+        
+        textarea.value = newVal;
+        log(`🗑️ Auto-Deleted Invalid ID: ${badUser}`);
+    }
+
+    // --- ROOM USER LIST ---
+    function updateRoomList(usersArray) {
+        let box = document.getElementById("roomUserList");
+        box.innerHTML = ""; // Clear and rebuild (simple way)
+        
+        document.getElementById("userCount").innerText = usersArray.length;
+
+        usersArray.forEach(u => {
+            let name = u.username || u.name || "Unknown";
+            let role = u.role || "Member";
+            let icon = u.avatar_url || u.icon || u.image || "https://ui-avatars.com/api/?name="+name;
+            if(!icon.startsWith("http")) icon = "https://chatp.net" + icon;
+
+            let div = document.createElement("div");
+            div.className = "user-item";
+            div.innerHTML = `
+                <img src="${icon}" class="user-avatar">
+                <div>
+                    <div class="user-name">${name}</div>
+                    <div class="user-role">${role.toUpperCase()}</div>
+                </div>
+            `;
+            box.appendChild(div);
+        });
+    }
+
+    // --- BOT LOGIC ---
+    const ASCII_LIB = ["(｡♥‿♥｡)", "ʕ•ᴥ•ʔ", "(ง'̀-'́)ง", "✨🌟✨", "🔥", "❤️"];
+
     function generateId(len=16) {
-        let c = "abcdef0123456789";
-        let s = "";
+        let c = "abcdef0123456789", s = "";
         for(let i=0; i<len; i++) s += c.charAt(Math.floor(Math.random()*c.length));
         return s;
     }
 
     class Bot {
-        constructor(user, pass, room) {
+        constructor(user, pass, room, delay, mode, customMsg) {
             this.user = user;
             this.pass = pass;
             this.room = room;
+            this.delay = delay * 1000;
+            this.mode = mode;
+            this.customMsg = customMsg;
             this.ws = null;
             this.id = generateId();
         }
 
         connect() {
             if (!isRunning) return;
+            updateBotStatus(this.user, "CONNECTING...");
             
-            // Mobile Browser to Chatp Direct Connection
             this.ws = new WebSocket("wss://chatp.net:5333/server");
 
             this.ws.onopen = () => {
-                log(`[${this.user}] Connected. Logging in...`);
-                this.send({
-                    handler: "login",
-                    id: this.id,
-                    username: this.user,
-                    password: this.pass
-                });
+                this.send({ handler: "login", id: this.id, username: this.user, password: this.pass });
             };
 
             this.ws.onmessage = (e) => {
-                if (!isRunning) return;
                 let data = JSON.parse(e.data);
 
+                // 1. LOGIN SUCCESS
                 if (data.handler === "login_event" && data.type === "success") {
-                    log(`[${this.user}] Login OK! Joining Room...`);
-                    this.send({
-                        handler: "room_join",
-                        id: generateId(),
-                        name: this.room
-                    });
+                    updateBotStatus(this.user, "LOGGED IN");
+                    this.send({ handler: "room_join", id: generateId(), name: this.room });
                 }
+                
+                // 1.1 LOGIN FAILED (CRITICAL)
+                else if (data.handler === "login_event" && data.type === "error") {
+                    updateBotStatus(this.user, "FAILED");
+                    removeFailedID(this.user); // Auto Delete
+                    this.ws.close();
+                }
+
+                // 2. ROOM JOINED
                 else if (data.handler === "room_event" && data.type === "room_joined") {
-                    log(`[${this.user}] ✅ ENTERED ROOM`);
+                    updateBotStatus(this.user, "ONLINE");
+                    
+                    if (this.mode !== "ghost") {
+                        let msg = (this.mode === "ascii") ? ASCII_LIB[Math.floor(Math.random()*ASCII_LIB.length)] : (this.customMsg || "Hello");
+                        setTimeout(() => {
+                            if(isRunning) this.send({ handler: "room_message", id: generateId(), room: this.room, type: "text", body: msg });
+                        }, this.delay);
+                    }
+                }
+
+                // 3. CAPTURE USER LIST (ROSTER)
+                // Chatp sends 'roster' handler with 'users' array
+                else if (data.handler === "roster") {
+                    if (data.users && data.users.length > 0) {
+                        updateRoomList(data.users);
+                    }
                 }
             };
 
-            this.ws.onclose = () => log(`[${this.user}] Disconnected ❌`);
-            this.ws.onerror = () => log(`[${this.user}] Connection Error ⚠️`);
+            this.ws.onclose = () => updateBotStatus(this.user, "DISCONNECTED");
+            this.ws.onerror = () => {
+                updateBotStatus(this.user, "FAILED");
+                // Optional: removeFailedID(this.user); // Uncomment if connection error should also delete ID
+            };
             
             activeSockets.push(this.ws);
         }
@@ -132,50 +262,40 @@ HTML_CODE = """
 
     function startBots() {
         if (isRunning) return;
-        
         let room = document.getElementById("roomName").value;
         let rawString = document.getElementById("accountString").value;
+        let delayVal = document.getElementById("msgDelay").value;
+        let mode = document.getElementById("msgMode").value;
+        let customMsg = document.getElementById("customText").value;
 
-        if (!rawString.includes("#") || !rawString.includes("@")) {
-            alert("Format Error! Use: user#pass@user#pass@");
-            return;
-        }
+        if (!rawString.includes("#") || !rawString.includes("@")) { alert("Format: user#pass@"); return; }
 
         isRunning = true;
-        log("[*] Parsing Accounts...");
+        document.getElementById("botStatusList").innerHTML = ""; // Clear Status List
 
-        // --- PARSING LOGIC (Format: id#pass@id#pass@) ---
-        // 1. Split by '@' to get accounts
         let accounts = rawString.split("@");
         let validBots = [];
-
         accounts.forEach(acc => {
-            acc = acc.trim();
             if (acc.includes("#")) {
-                let parts = acc.split("#");
-                let u = parts[0].trim();
-                let p = parts[1].trim();
-                if (u && p) {
-                    validBots.push({u: u, p: p});
-                }
+                let p = acc.split("#");
+                if(p[0] && p[1]) validBots.push({u: p[0].trim(), p: p[1].trim()});
             }
         });
 
-        log(`[*] Found ${validBots.length} Bots. Launching...`);
+        log(`[*] Launching ${validBots.length} Bots...`);
 
-        // Connect one by one with 500ms delay
         validBots.forEach((botData, index) => {
             setTimeout(() => {
                 if (!isRunning) return;
-                let bot = new Bot(botData.u, botData.p, room);
+                let bot = new Bot(botData.u, botData.p, room, delayVal, mode, customMsg);
                 bot.connect();
-            }, index * 500);
+            }, index * 800);
         });
     }
 
     function stopBots() {
         isRunning = false;
-        log("[!] Stopping all bots...");
+        log("🛑 Stopping All...");
         activeSockets.forEach(s => s.close());
         activeSockets = [];
     }
